@@ -12,8 +12,6 @@
 #include "nrf_log_ctrl.h"
 #include "nrf_log_default_backends.h"
 #include "sdk_config.h"
-#include "nrf52840.h"
-#include "nrf52840_bitfields.h"
 #include "radio_config.h"
 #include "app_timer.h"
 #include "bsp_config.h"
@@ -64,13 +62,16 @@ int main(void) {
     err_code = NRF_LOG_INIT(NULL);
     APP_ERROR_CHECK(err_code);
     NRF_LOG_DEFAULT_BACKENDS_INIT();
-    NRF_LOG_INFO("TRANSMITTER\n");
-    bsp_board_init(BSP_INIT_LEDS | BSP_INIT_BUTTONS);
+    err_code = bsp_init(BSP_INIT_LEDS, NULL);
+    APP_ERROR_CHECK(err_code);
     radio_configure();
     NRF_RADIO->PACKETPTR = (uint32_t) &packet;
+    err_code = bsp_indication_set(BSP_INDICATE_USER_STATE_OFF);
+    NRF_LOG_INFO("Radio transmitter example started.");
     while (true) {
         send_packet();
         NRF_LOG_INFO("The contents of the package was %u", (unsigned int) packet);
         nrf_delay_ms(1000);
+        NRF_LOG_FLUSH();
     }
 }
