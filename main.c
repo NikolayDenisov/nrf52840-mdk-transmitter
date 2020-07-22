@@ -34,7 +34,6 @@ void send_packet() {
     uint32_t err_code = bsp_indication_set(BSP_INDICATE_SENT_OK);
     NRF_LOG_INFO("The packet was sent");
     APP_ERROR_CHECK(err_code);
-    NRF_LOG_INFO("The packet was sent");
     NRF_RADIO->EVENTS_DISABLED = 0U;
     NRF_RADIO->TASKS_DISABLE = 1U;
     while (NRF_RADIO->EVENTS_DISABLED == 0U) {
@@ -66,7 +65,7 @@ int main(void) {
     APP_ERROR_CHECK(err_code);
     NRF_LOG_DEFAULT_BACKENDS_INIT();
     NRF_LOG_INFO("TRANSMITTER\n");
-    bsp_board_init(BSP_INIT_LEDS);
+    bsp_board_init(BSP_INIT_LEDS | BSP_INIT_BUTTONS);
     radio_configure();
     NRF_RADIO->PACKETPTR = (uint32_t) &packet;
     while (true) {
