@@ -39,6 +39,36 @@ void send_packet() {
     }
 }
 
+void bsp_evt_handler(bsp_event_t evt) {
+    uint32_t prep_packet = 0;
+    switch (evt) {
+        case BSP_EVENT_KEY_0:
+            /* Fall through. */
+        case BSP_EVENT_KEY_1:
+            /* Fall through. */
+        case BSP_EVENT_KEY_2:
+            /* Fall through. */
+        case BSP_EVENT_KEY_3:
+            /* Fall through. */
+        case BSP_EVENT_KEY_4:
+            /* Fall through. */
+        case BSP_EVENT_KEY_5:
+            /* Fall through. */
+        case BSP_EVENT_KEY_6:
+            /* Fall through. */
+        case BSP_EVENT_KEY_7:
+            /* Get actual button state. */
+            for (int i = 0; i < BUTTONS_NUMBER; i++) {
+                prep_packet |= (bsp_board_button_state_get(i) ? (1 << i) : 0);
+            }
+            break;
+        default:
+            /* No implementation needed. */
+            break;
+    }
+    packet = prep_packet;
+}
+
 void clock_initialization() {
     NRF_CLOCK->EVENTS_HFCLKSTARTED = 0;
     NRF_CLOCK->TASKS_HFCLKSTART = 1;
@@ -62,16 +92,19 @@ int main(void) {
     err_code = NRF_LOG_INIT(NULL);
     APP_ERROR_CHECK(err_code);
     NRF_LOG_DEFAULT_BACKENDS_INIT();
-    err_code = bsp_init(BSP_INIT_LEDS, NULL);
+    err_code = bsp_init(BSP_INIT_LEDS | BSP_INIT_BUTTONS, bsp_evt_handler);
     APP_ERROR_CHECK(err_code);
     radio_configure();
     NRF_RADIO->PACKETPTR = (uint32_t) &packet;
     err_code = bsp_indication_set(BSP_INDICATE_USER_STATE_OFF);
     NRF_LOG_INFO("Radio transmitter example started.");
     while (true) {
-        send_packet();
-        NRF_LOG_INFO("The contents of the package was %u", (unsigned int) packet);
-        nrf_delay_ms(1000);
+        if (packet != 0) {
+            send_packet();
+            NRF_LOG_INFO("The contents of the package was %u", (unsigned int) packet);
+            packet = 0;
+        }
         NRF_LOG_FLUSH();
+        __WFE();
     }
 }
