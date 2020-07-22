@@ -2,7 +2,8 @@ PROJECT_NAME     := project_nrf52840_mdk
 TARGETS          := nrf52840_xxaa
 OUTPUT_DIRECTORY := _build
 
-MDK_ROOT := /home/nick/nrf52840-mdk-transmitter
+HOME := /home/nick
+MDK_ROOT := $(HOME)/nrf52840-mdk-transmitter
 SDK_ROOT := $(MDK_ROOT)/nRF5_SDK_17
 PROJ_DIR := $(MDK_ROOT)
 
@@ -19,6 +20,7 @@ SRC_FILES += \
   $(SDK_ROOT)/components/libraries/log/src/nrf_log_frontend.c \
   $(SDK_ROOT)/components/libraries/log/src/nrf_log_str_formatter.c \
   $(SDK_ROOT)/components/boards/boards.c \
+  $(SDK_ROOT)/components/libraries/bsp/bsp.c \
   $(SDK_ROOT)/components/libraries/util/app_error.c \
   $(SDK_ROOT)/components/libraries/util/app_error_handler_gcc.c \
   $(SDK_ROOT)/components/libraries/util/app_error_weak.c \
@@ -35,9 +37,15 @@ SRC_FILES += \
   $(SDK_ROOT)/modules/nrfx/drivers/src/prs/nrfx_prs.c \
   $(SDK_ROOT)/modules/nrfx/drivers/src/nrfx_uart.c \
   $(SDK_ROOT)/modules/nrfx/drivers/src/nrfx_uarte.c \
+  $(SDK_ROOT)/components/libraries/timer/app_timer.c \
+  $(SDK_ROOT)/components/libraries/atomic_fifo/nrf_atfifo.c \
   $(PROJ_DIR)/main.c \
   $(SDK_ROOT)/modules/nrfx/mdk/system_nrf52840.c \
   $(SDK_ROOT)/components/drivers_nrf/radio_config/radio_config.c \
+  $(SDK_ROOT)/components/libraries/sortlist/nrf_sortlist.c \
+  $(SDK_ROOT)/components/libraries/timer/drv_rtc.c \
+  $(SDK_ROOT)/components/libraries/fifo/app_fifo.c \
+  $(SDK_ROOT)/components/libraries/button/app_button.c \
 
 # Include folders common to all targets
 INC_FOLDERS += \
@@ -65,9 +73,12 @@ INC_FOLDERS += \
   $(SDK_ROOT)/modules/nrfx/drivers/include \
   $(SDK_ROOT)/components/libraries/log/src \
   $(SDK_ROOT)/external/fprintf \
+  $(SDK_ROOT)/components/libraries/timer \
   $(SDK_ROOT)/components/libraries/atomic \
   $(SDK_ROOT)/components/drivers_nrf/radio_config/ \
-
+  $(SDK_ROOT)/components/libraries/atomic_fifo \
+  $(SDK_ROOT)/components/libraries/sortlist \
+  $(SDK_ROOT)/components/libraries/button \
 
 
 
@@ -81,9 +92,11 @@ OPT = -O3 -g3
 
 # C flags common to all targets
 CFLAGS += $(OPT)
+CFLAGS += -DAPP_TIMER_V2
+CFLAGS += -DAPP_TIMER_V2_RTC1_ENABLED
 CFLAGS += -DBOARD_CUSTOM
 CFLAGS += -DNRF52840_MDK
-CFLAGS += -DBSP_DEFINES_ONLY
+CFLAGS += -DBSP_UART_SUPPORT
 CFLAGS += -DCONFIG_GPIO_AS_PINRESET
 CFLAGS += -DFLOAT_ABI_HARD
 CFLAGS += -DNRF52840_XXAA
@@ -97,15 +110,17 @@ CFLAGS += -fno-builtin -fshort-enums
 
 # C++ flags common to all targets
 CXXFLAGS += $(OPT)
-
 # Assembler flags common to all targets
 ASMFLAGS += -g3
 ASMFLAGS += -mcpu=cortex-m4
 ASMFLAGS += -mthumb -mabi=aapcs
 ASMFLAGS += -mfloat-abi=hard -mfpu=fpv4-sp-d16
+ASMFLAGS += -DAPP_TIMER_V2
+ASMFLAGS += -DAPP_TIMER_V2_RTC1_ENABLED
 ASMFLAGS += -DBOARD_CUSTOM
 ASMFLAGS += -DNRF52840_MDK
-ASMFLAGS += -DBSP_DEFINES_ONLY
+ASMFLAGS += -DBSP_UART_SUPPORT
+ASMFLAGS += -DBSP_UART_SUPPORT
 ASMFLAGS += -DCONFIG_GPIO_AS_PINRESET
 ASMFLAGS += -DFLOAT_ABI_HARD
 ASMFLAGS += -DNRF52840_XXAA

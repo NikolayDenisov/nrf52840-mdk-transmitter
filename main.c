@@ -1,6 +1,7 @@
 #include <stdio.h>
 #include <string.h>
 #include <stdlib.h>
+#include "bsp.h"
 #include "nrf_drv_qspi.h"
 #include "nrf_delay.h"
 #include "app_util_platform.h"
@@ -13,8 +14,9 @@
 #include "sdk_config.h"
 #include "nrf52840.h"
 #include "nrf52840_bitfields.h"
-#include "bsp.h"
 #include "radio_config.h"
+#include "app_timer.h"
+#include "bsp_config.h"
 
 static uint32_t packet;
 
@@ -29,9 +31,9 @@ void send_packet() {
     while (NRF_RADIO->EVENTS_END == 0U) {
         // wait
     }
-
-    bsp_board_led_invert(0);
-    nrf_delay_ms(10);
+    uint32_t err_code = bsp_indication_set(BSP_INDICATE_SENT_OK);
+    NRF_LOG_INFO("The packet was sent");
+    APP_ERROR_CHECK(err_code);
     NRF_LOG_INFO("The packet was sent");
     NRF_RADIO->EVENTS_DISABLED = 0U;
     NRF_RADIO->TASKS_DISABLE = 1U;
@@ -58,11 +60,13 @@ int main(void) {
     uint32_t err_code = NRF_SUCCESS;
     packet = 1;
     clock_initialization();
+    err_code = app_timer_init();
+    APP_ERROR_CHECK(err_code);
     err_code = NRF_LOG_INIT(NULL);
     APP_ERROR_CHECK(err_code);
     NRF_LOG_DEFAULT_BACKENDS_INIT();
     NRF_LOG_INFO("TRANSMITTER\n");
-    bsp_board_init(BSP_INIT_LEDS | BSP_INIT_BUTTONS);
+    bsp_board_init(BSP_INIT_LEDS);
     radio_configure();
     NRF_RADIO->PACKETPTR = (uint32_t) &packet;
     while (true) {
